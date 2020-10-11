@@ -70,8 +70,6 @@ pyglet==1.5.1
 Pygments==2.6.1
 PyHamcrest==1.9.0
 PyInstaller==3.6
-pyowm==2.10.0
-pypiwin32==223
 PySide2==5.14.2
 pysound==0.1
 python-dotenv==0.12.0
