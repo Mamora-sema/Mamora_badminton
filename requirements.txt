@@ -57,7 +57,6 @@ pep517==0.6.0
 pexpect==4.8.0
 Pillow==7.1.1
 playsound==1.2.2
-post==2019.4.13
 protobuf==3.11.3
 ptyprocess==0.6.0
 public==2019.4.13
