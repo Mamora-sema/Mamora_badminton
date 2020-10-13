@@ -7,7 +7,7 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///blog.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_BINDS'] = {
-    'messages': 'sqlite:///message.db'
+    'message': 'sqlite:///message.db'
 }
 db = SQLAlchemy(app)
 
@@ -34,7 +34,7 @@ class Article(db.Model):
 
 class Message(db.Model):
 
-    __bind_key__ = 'messages'
+    __bind_key__ = 'message'
 
     id = db.Column(db.Integer, primary_key=True)
     Name = db.Column(db.Text, nullable=False)
@@ -170,7 +170,7 @@ def message():
         Name = request.form['Name']
         Surname = request.form['Surname']
         text = request.form['text']
-        messages = Message(Name=Name, Surname=Surname, text=text)
+        message = Message(Name=Name, Surname=Surname, text=text)
 
         try:
             db.session.add(message)
@@ -181,8 +181,8 @@ def message():
 
     else:
 
-        messages = Message.query.order_by(Message.date.desc()).all()
-        return render_template('message.html', messages = messages)
+        message = Message.query.order_by(Message.date.desc()).all()
+        return render_template('message.html', message = message)
 
 
 
