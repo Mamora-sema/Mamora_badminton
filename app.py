@@ -170,7 +170,7 @@ def message():
         Name = request.form['Name']
         Surname = request.form['Surname']
         text = request.form['text']
-        message = Message(Name=Name, Surname=Surname, text=text)
+        messages = Message(Name=Name, Surname=Surname, text=text)
 
         try:
             db.session.add(message)
