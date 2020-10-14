@@ -169,23 +169,7 @@ def create_article():
 
 @app.route('/message', methods=["POST", 'GET'])
 def message():
-    if request.method == "POST":
-        Name = request.form['Name']
-        Surname = request.form['Surname']
-        text = request.form['text']
-        message = Message(Name=Name, Surname=Surname, text=text)
-
-        try:
-            db.session.add(message)
-            db.session.commit()
-            return redirect("/message")
-        except:
-            return "При добавлении статьи произошла ошибка"
-
-    else:
-
-        message = Message.query.order_by(Message.date.desc()).all()
-        return render_template('message.html', message=message)
+    return render_template('message.html')
 
 
 
