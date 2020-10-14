@@ -185,7 +185,7 @@ def message():
     else:
 
         message = Message.query.order_by(Message.date.desc()).all()
-        return render_template('message.html', message = message)
+        return render_template('message.html', message=message)
 
 
 
