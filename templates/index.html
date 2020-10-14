@@ -5,17 +5,8 @@
 {% block body %}
 
 <div class="container">
-    <h2>Новости:</h2>
-{% for el in articles %}
+    <h2>Новости в мире бадминтона:</h2>
+<p>У нас ещё нету статей на сайте</p>
 
-    <div class="alert alert-info">
-        <h2>{{ el.title}}</h2>
-        <p>{{ el.intro}}</p>
-        <p><b> Дата: {{ el.date.date() }}</b></p>
-        <a href="/posts/{{ el.id }}" class ="btn btn-warning">Детальнее</a>
-    </div>
-
-    {% endfor %}
 </div>
-
 {% endblock %}

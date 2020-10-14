@@ -48,9 +48,14 @@ class Message(db.Model):
 
 
 
+
 @app.route('/timetable')
 def timetable():
     return render_template('timetable.html')
+
+@app.route('/test')
+def test():
+    return render_template('test.html')
 
 
 @app.route('/')
@@ -62,9 +67,7 @@ def index():
 
 
 
-@app.route('/about')
-def about():
-    return render_template('about.html')
+
 
 
 @app.route('/posts')
@@ -100,7 +103,7 @@ def message_delete(id):
         return redirect("/message")
 
     except:
-        return "При удалении статьи произошла ошибка"
+        return "При удалении сообщения произошла ошибка"
 
 
 @app.route('/message/<int:id>/update', methods=["POST", 'GET'])
