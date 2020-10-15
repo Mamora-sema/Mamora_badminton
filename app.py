@@ -93,9 +93,9 @@ def news_update(id):
     news = News.query.get(id)
 
     if request.method == "POST":
-        message.Name = request.form['Name']
-        message.Surname = request.form['Surname']
-        message.text = request.form['text']
+        news.title = request.form['title']
+        news.intro = request.form['intro']
+        news.text = request.form['text']
 
 
         try:
