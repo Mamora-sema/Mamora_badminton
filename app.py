@@ -7,7 +7,8 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///blog.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_BINDS'] = {
-    'message': 'sqlite:///message.db'
+    'message': 'sqlite:///message.db',
+    'news': 'sqlite:///news.db'
 }
 db = SQLAlchemy(app)
 
@@ -46,6 +47,20 @@ class Message(db.Model):
     def __repr__(self):
         return '<Message %r>' % self.Name
 
+class News(db.Model):
+
+    __bind_key__ = 'news'
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    intro = db.Column(db.String(300), nullable=False)
+    text = db.Column(db.Text, nullable=False)
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+    def __repr__(self):
+        return '<News %r>' % self.Name
+
 
 
 
@@ -53,20 +68,52 @@ class Message(db.Model):
 def timetable():
     return render_template('timetable.html')
 
-@app.route('/test')
-def test():
-    return render_template('test.html')
+
 
 
 @app.route('/')
 def index():
+    news = News.query.order_by(News.date.desc()).all()
+    return render_template('index.html', news=news)
 
-    articles = Article.query.order_by(Article.date.desc()).all()
-    return render_template('index.html', articles=articles)
+@app.route('/news/<int:id>/del')
+def news_delete(id):
+    news = News.query.get_or_404(id)
+    try:
+        db.session.delete(news)
+        db.session.commit()
+        return redirect("/")
+
+    except:
+        return "При удалении статьи произошла ошибка"
+
+
+@app.route('/news/<int:id>/update', methods=["POST", 'GET'])
+def news_update(id):
+    news = News.query.get(id)
+
+    if request.method == "POST":
+        message.Name = request.form['Name']
+        message.Surname = request.form['Surname']
+        message.text = request.form['text']
+
+
+        try:
+            db.session.commit()
+            return redirect("/")
+        except:
+            return "При добавлении статьи произошла ошибка"
+
+    else:
+
+        return render_template("news_update.html", news=news)
 
 
 
-
+@app.route('/news/<int:id>')
+def news_detail(id):
+    news = News.query.get(id)
+    return render_template('news_detail.html', news=news)
 
 
 
@@ -141,7 +188,7 @@ def create_update(id):
             db.session.commit()
             return redirect("/posts")
         except:
-            return "При добавлении статьи произошла ошибка"
+            return "При обновлении статьи произошла ошибка"
 
     else:
 
@@ -154,6 +201,7 @@ def create_article():
         title = request.form['title']
         intro = request.form['intro']
         text = request.form['text']
+
         article = Article(title=title, intro=intro, text=text)
 
         try:
@@ -167,9 +215,52 @@ def create_article():
         return render_template("create-article.html")
 
 
+@app.route('/create_news', methods=["POST", 'GET'])
+def create_news():
+    if request.method == "POST":
+        title = request.form['title']
+        intro = request.form['intro']
+        text = request.form['text']
+
+        news = News(title=title, intro=intro, text=text)
+
+        try:
+            db.session.add(news)
+            db.session.commit()
+            return redirect("/posts")
+        except:
+            return "При добавлении статьи произошла ошибка"
+
+    else:
+        return render_template("create_news.html")
+
+
+@app.route('/news_selection')
+def news_selection():
+    return render_template("news_selection.html")
+
+
+
+
 @app.route('/message', methods=["POST", 'GET'])
 def message():
-    return render_template('message.html')
+    if request.method == "POST":
+        Name = request.form['Name']
+        Surname = request.form['Surname']
+        text = request.form['text']
+        message = Message(Name=Name, Surname=Surname, text=text)
+
+        try:
+            db.session.add(message)
+            db.session.commit()
+            return redirect("/message")
+        except:
+            return "При добавлении статьи произошла ошибка"
+
+    else:
+
+        message = Message.query.order_by(Message.date.desc()).all()
+        return render_template('message.html', message=message)
 
 
 
