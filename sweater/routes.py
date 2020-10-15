@@ -1,144 +1,18 @@
-from flask import Flask, render_template, url_for, request, redirect, flash
+from flask import Flask, render_template, url_for,request,redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
-
-from werkzeug.security import check_password_hash, generate_password_hash
-
-
-app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///blog.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = 'some secret salt'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://postgres:123@localhost/py_sweater'
-app.config['SQLALCHEMY_BINDS'] = {
-    'message': 'sqlite:///message.db',
-    'news': 'sqlite:///news.db',
-    'urgent': 'sqlite:///urgent.db'
-}
-db = SQLAlchemy(app)
-manager = LoginManager(app)
-
-
-class User(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
-    login = db.Column(db.String(128), nullable=False, unique=True)
-    password = db.Column(db.String(255), nullable=False)
-
-
-
-class Article(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    intro = db.Column(db.String(300), nullable=False)
-    text = db.Column(db.Text, nullable=False)
-    date = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def __repr__(self):
-        return '<Article %r>' % self.id
-
-
-@manager.user_loader
-def load_user(user_id):
-    return User.query.get(user_id)
-
-
-class Message(db.Model):
-    __bind_key__ = 'message'
-
-    id = db.Column(db.Integer, primary_key=True)
-    Name = db.Column(db.Text, nullable=False)
-    Surname = db.Column(db.Text, nullable=False)
-    text = db.Column(db.Text, nullable=False)
-    date = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def __repr__(self):
-        return '<Message %r>' % self.Name
-
-
-class News(db.Model):
-    __bind_key__ = 'news'
-
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    intro = db.Column(db.String(300), nullable=False)
-    text = db.Column(db.Text, nullable=False)
-    date = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def __repr__(self):
-        return '<News %r>' % self.Name
-
-
-class Urgent(db.Model):
-    __bind_key__ = 'urgent'
-
-    id = db.Column(db.Integer, primary_key=True)
-    text = db.Column(db.Text, nullable=False)
-
-    def __repr__(self):
-        return '<Urgent %r>' % self.Name
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login_page():
-    login = request.form.get('login')
-    password = request.form.get('password')
-
-    if login and password:
-        user = User.query.filter_by(login=login).first()
-
-        if user and check_password_hash(user.password, password):
-            login_user(user)
-
-            return render_template('index.html')
-            register(next_page)
-        else:
-            flash("Please login or password or surname erorr")
-    else:
-        flash("Please login and password ")
-    return render_template('login.html')
-
-@app.route("/logout", methods=['GET', 'POST'])
-@login_required
-def logout():
-    logout_user()
-    return render_template('index.html')
-
-
-@app.route("/register", methods=['GET', 'POST'])
-def register():
-    login = request.form.get('login')
-    password = request.form.get('password')
-    password2 = request.form.get('password2')
-
-
-    if request.method == "POST":
-        if not (login or password or password2 or surname):
-            flash("Заполните всё")
-        elif password != password2:
-            flash("Пароли не равны")
-        else:
-            hash_pwd = generate_password_hash(password)
-            new_user = User(login=login,password=hash_pwd)
-            db.session.add(new_user)
-            db.session.commit()
-            return render_template('login.html')
-
-
-    return render_template('register.html')
-
-
-
-
-
+from sweater import app, db
+from sweater import News, Message, Article, Urgent
 
 @app.route('/timetable')
 def timetable():
+
     return render_template('timetable.html')
 
 
 @app.route('/')
 def index():
+
     news = News.query.order_by(News.date.desc()).all()
     return render_template('index.html', news=news)
 
@@ -164,6 +38,7 @@ def news_update(id):
         news.intro = request.form['intro']
         news.text = request.form['text']
 
+
         try:
             db.session.commit()
             return redirect("/")
@@ -183,10 +58,13 @@ def news_detail(id):
 
 @app.route('/urgent_create', methods=["POST", 'GET'])
 def urgent_create():
+
     if request.method == "POST":
 
         text = request.form['text']
         urgent = Urgent(text=text)
+
+
 
         db.session.add(urgent)
         db.session.commit()
@@ -199,6 +77,7 @@ def urgent_create():
 
 @app.route('/posts')
 def posts():
+
     articles = Article.query.order_by(Article.date.desc()).all()
     return render_template('posts.html', articles=articles)
 
@@ -223,6 +102,7 @@ def posts_delete(id):
 
 @app.route('/message/<int:id>/del')
 def message_delete(id):
+
     message = Message.query.get_or_404(id)
     try:
         db.session.delete(message)
@@ -242,6 +122,7 @@ def message_update(id):
         message.Surname = request.form['Surname']
         message.text = request.form['text']
 
+
         try:
             db.session.commit()
             return redirect("/message")
@@ -253,6 +134,8 @@ def message_update(id):
         return render_template("message_update.html", message=message)
 
 
+
+
 @app.route('/posts/<int:id>/update', methods=["POST", 'GET'])
 def create_update(id):
     article = Article.query.get(id)
@@ -261,6 +144,7 @@ def create_update(id):
         article.title = request.form['title']
         article.intro = request.form['intro']
         article.text = request.form['text']
+
 
         try:
             db.session.commit()
@@ -319,8 +203,9 @@ def news_selection():
 
 
 @app.route('/message', methods=["POST", 'GET'])
-@login_required
 def message():
+
+
     if request.method == "POST":
         Name = request.form['Name']
         Surname = request.form['Surname']
@@ -338,13 +223,3 @@ def message():
 
         message = Message.query.order_by(Message.date.desc()).all()
         return render_template('message.html', message=message)
-
-@app.after_request
-def redirect_to_signin(response):
-    if response.status_code == 401:
-        return redirect(url_for('login_page') + '?next=' + request.url)
-    return response
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
