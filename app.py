@@ -1,8 +1,9 @@
-from flask import Flask, render_template, url_for, request, redirect, flash
+import flask_login
+from flask import Flask, render_template, url_for, request, redirect, flash, current_app
+from flask_principal import Principal, RoleNeed, Permission, identity_changed, Identity, AnonymousIdentity
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
-
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
@@ -10,7 +11,6 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///blog.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'some secret salt'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://postgres:123@localhost/py_sweater'
 app.config['SQLALCHEMY_BINDS'] = {
     'message': 'sqlite:///message.db',
     'news': 'sqlite:///news.db',
@@ -18,12 +18,19 @@ app.config['SQLALCHEMY_BINDS'] = {
 }
 db = SQLAlchemy(app)
 manager = LoginManager(app)
+principals = Principal(app)
+
+
+
 
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     login = db.Column(db.String(128), nullable=False, unique=True)
+    surname = db.Column(db.String(128), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
+
+
 
 
 
@@ -83,14 +90,19 @@ class Urgent(db.Model):
 def login_page():
     login = request.form.get('login')
     password = request.form.get('password')
+    surname = request.form.get('surname')
 
-    if login and password:
-        user = User.query.filter_by(login=login).first()
+
+    if login and surname and password:
+        user = User.query.filter_by(login=login,surname=surname).first()
 
         if user and check_password_hash(user.password, password):
             login_user(user)
 
+
             return render_template('index.html')
+
+
             register(next_page)
         else:
             flash("Please login or password or surname erorr")
@@ -102,6 +114,7 @@ def login_page():
 @login_required
 def logout():
     logout_user()
+
     return render_template('index.html')
 
 
@@ -110,16 +123,16 @@ def register():
     login = request.form.get('login')
     password = request.form.get('password')
     password2 = request.form.get('password2')
-
+    surname = request.form.get('surname')
 
     if request.method == "POST":
-        if not (login or password or password2 or surname):
+        if not (login or password or surname or password2):
             flash("Заполните всё")
         elif password != password2:
             flash("Пароли не равны")
         else:
             hash_pwd = generate_password_hash(password)
-            new_user = User(login=login,password=hash_pwd)
+            new_user = User(login=login,surname=surname,password=hash_pwd)
             db.session.add(new_user)
             db.session.commit()
             return render_template('login.html')
@@ -128,8 +141,22 @@ def register():
     return render_template('register.html')
 
 
+@app.route('/test')
+def test():
+    user = User.query.all()
+    return render_template('test.html', user=user)
 
+@app.route('/user/<int:id>/del')
+def user_delete(id):
+    user = User.query.get_or_404(id)
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        db.session.delete
+        return redirect("/")
 
+    except:
+        return "При удалении статьи произошла ошибка"
 
 
 @app.route('/timetable')
@@ -314,16 +341,19 @@ def create_news():
 
 
 @app.route('/news_selection')
-def news_selection():
-    return render_template("news_selection.html")
+def news_selection(admin_permission=None):
+    with admin_permission.require():
+
+        return render_template("news_selection.html")
 
 
 @app.route('/message', methods=["POST", 'GET'])
 @login_required
 def message():
     if request.method == "POST":
-        Name = request.form['Name']
-        Surname = request.form['Surname']
+
+        Name = flask_login.current_user.login
+        Surname = flask_login.current_user.surname
         text = request.form['text']
         message = Message(Name=Name, Surname=Surname, text=text)
 
@@ -335,6 +365,8 @@ def message():
             return "При добавлении статьи произошла ошибка"
 
     else:
+
+
 
         message = Message.query.order_by(Message.date.desc()).all()
         return render_template('message.html', message=message)
