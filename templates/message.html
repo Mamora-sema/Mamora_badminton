@@ -11,12 +11,10 @@
         <p>{{ mes.text}} <a href="/message/{{ mes.id }}/del" class ="btn btn-danger">Удалить</a><a href="/message/{{ mes.id}}/update" class ="btn btn-success">Редактировать</a></p>
 </div>
     {% endfor %}
-  <div class="alert alert-secondary"">
+  <div class="alert alert-secondary">
         <form method="post">
 
-        <input type = "text" name = "Name" id = "Name"class = "form-control" size="1" placeholder="Ваше Имя"><br>
-        <textarea name = "Surname" id = "Surname" class = "form-control"placeholder="Ваша Фамилия"></textarea><br>
-        <textarea name = "text" id = "text" class = "form-control" placeholder="Введите текст"></textarea><br>
+        <input type = "text" name = "text" id = "text"class = "form-control" size="1" placeholder="Введите текст"><br>
         <input type = submit class = "btn btn-success" value="Отправить">
         </form>
   </div>

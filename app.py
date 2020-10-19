@@ -90,20 +90,17 @@ class Urgent(db.Model):
 def login_page():
     login = request.form.get('login')
     password = request.form.get('password')
-    surname = request.form.get('surname')
 
 
-    if login and surname and password:
-        user = User.query.filter_by(login=login,surname=surname).first()
+
+    if login  and password:
+        user = User.query.filter_by(login=login).first()
 
         if user and check_password_hash(user.password, password):
             login_user(user)
+            next_page = request.args.get('next')
+            return redirect(next_page)
 
-
-            return render_template('index.html')
-
-
-            register(next_page)
         else:
             flash("Please login or password or surname erorr")
     else:
@@ -341,10 +338,8 @@ def create_news():
 
 
 @app.route('/news_selection')
-def news_selection(admin_permission=None):
-    with admin_permission.require():
-
-        return render_template("news_selection.html")
+def news_selection():
+    return render_template("news_selection.html")
 
 
 @app.route('/message', methods=["POST", 'GET'])
